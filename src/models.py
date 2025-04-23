@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
 
@@ -9,6 +9,7 @@ class User(db.Model):
     login: Mapped[str] = mapped_column(String(60), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
+    favorites: Mapped[list["Favorites"]] = relationship(back_populates="user_favorites")
 
     def serialize(self):
         return {
@@ -22,10 +23,16 @@ class Favorites(db.Model):
 
     # user id who favorited -- that is going to relate this table to the user table
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    user_favorites: Mapped["User"] = relationship(back_populates="favorites")
+
     # character id if they faved a character store that id -- relate to the character table
     character_id: Mapped[int] = mapped_column(ForeignKey("characters.id"))
+    fav_character: Mapped["Characters"] = relationship(back_populates="favorites")
+
     # planet id if they faved a planet store that id -- relate it to the planet table
     planet_id: Mapped[int] = mapped_column(ForeignKey("planets.id"))
+    fav_planet: Mapped["Planets"] = relationship(back_populates="favorites")
+
 
     def serialize(self):
         return {
@@ -40,6 +47,8 @@ class Characters(db.Model):
     name: Mapped[str] = mapped_column(String(60), unique=True, nullable=False)
     eye_color: Mapped[str] = mapped_column(String(60),nullable=False)
     hair_color: Mapped[str] = mapped_column(String(60), nullable=False)
+    favorites: Mapped[list["Favorites"]] = relationship(back_populates="fav_character")
+
 
     def serialize(self):
         return {
@@ -54,6 +63,8 @@ class Planets(db.Model):
     name: Mapped[str] = mapped_column(String(60), unique=True, nullable=False)
     climate: Mapped[str] = mapped_column(String(60),nullable=False)
     terrian: Mapped[str] = mapped_column(String(60), nullable=False)
+    favorites: Mapped[list["Favorites"]] = relationship(back_populates="fav_planet")
+
 
     def serialize(self):
         return {
